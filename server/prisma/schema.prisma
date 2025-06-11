@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SELLER
+  CUSTOMER
+}
+
+model User{
+  id String @id @default(uuid())
+  name String
+  password String
+  email String @unique
+  role UserRole @default(CUSTOMER)
+  avatar String? 
+
+  // Authentication
+  is_email_verified Boolean @default(false)
+  email_verification_token String? @unique
+  email_verification_token_expires_at DateTime?
+  reset_password_token String? @unique
+  reset_password_token_expires_at DateTime?
+  two_factor_enabled Boolean @default(false)
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  apiKeys ApiKey[]
+  stores Store[]
+  reviews Review[]
+  orders Order[]
+  cartItems CartItem[]
+  payments Payment[]
+
+  // Indexes
+  @@index([role])
+  @@index([email])
+  @@index([is_email_verified])
+  @@index([two_factor_enabled])
+
+}
+
+model ApiKey {
+  id String @id @default(uuid())
+  seller_id String
+  pub_key String @unique
+  priv_key String @unique
+  store_id String? // Optional, if the API key is specific to a store
+  description String? // Optional description for the API key
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  seller User @relation(fields: [seller_id], references: [id])
+  store Store? @relation(fields: [store_id], references: [id]) // Optional relation to Store
+
+  // Indexes
+  @@index([created_at])
+  @@index([updated_at])
+  @@index([seller_id])
+  @@index([pub_key])
+  @@index([store_id]) // Optional index for store-specific API keys
+  @@unique([pub_key, seller_id]) // Ensure unique API keys per seller
+}
+
+model Store {
+  id String @id @default(uuid())
+  owner_id String 
+  name String
+  description String?
+  logo String?
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  books Book[]
+  owner User @relation(fields: [owner_id], references: [id])
+  apiKeys ApiKey[]
+
+  // Indexes
+  @@index([owner_id])
+  @@index([created_at])
+  @@index([owner_id, name]) // Unique index to prevent duplicate store names for the same owner
+  @@unique([owner_id, name]) // Ensure unique store names per owner
+}
+
+model Book {
+  id String @id @default(uuid())
+  store_id String
+  title String
+  description String?
+  author String
+  price Float
+  cover_image String?
+  
+  store Store @relation(fields: [store_id], references: [id])
+  reviews Review[]
+  cartItems CartItem[]
+}
+
+model Review{
+  id String @id @default(uuid())
+  book_id String
+  user_id String
+  rating Int
+  comment String?
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  book Book @relation(fields: [book_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
+
+  // Indexes
+  @@index([book_id])
+  @@index([user_id])
+  @@index([rating])
+  @@index([created_at])
+  @@index([updated_at])
+  @@unique([book_id, user_id]) // Prevent duplicate reviews by the same user for the same book
+}
+
+model CartItem{
+  id String @id @default(uuid())
+  user_id String
+  book_id String
+  quantity Int @default(1)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  // Relations
+  user User @relation(fields: [user_id], references: [id])
+  book Book @relation(fields: [book_id], references: [id])
+
+  // Indexes
+  @@index([user_id])
+  @@index([book_id])
+  @@index([created_at])
+  @@index([updated_at])
+  @@unique([user_id, book_id]) // Prevent duplicate items in the cart
+}
+
+model Order{
+  id String @id @default(uuid())
+  user_id String
+  payment_id String @unique
+  status String @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  quantity Int @default(1)
+  price_per_copy Float
+  total_amount Float
+  shipping_address String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id])
+  payment Payment?
+
+  /*
+  payment Payment to payment Payment? in the Order model to make it optional
+  This allows you to:
+
+  - Create an Order first without a Payment
+  - Create a Payment that references the Order
+  - The relationship will be automatically established
+
+  The ? makes the relation optional, which is required for one-to-one relationships in Prisma to avoid circular dependency constraints
+  */
+
+}
+
+model Payment{
+  id String @id @default(uuid())
+  order_id String @unique
+  user_id String
+  amount Float
+  status String @default("PENDING") // PENDING, COMPLETED, FAILED
+  payment_method String // e.g., "CREDIT_CARD", "PAYPAL", etc.
+  transaction_id String? @unique // Unique transaction ID from the payment gateway
+  payment_gateway String // e.g., "STRIPE", "PAYPAL", etc.
+  payment_details Json? // Additional details about the payment, e.g., transaction metadata
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  order Order @relation(fields: [order_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
+}
