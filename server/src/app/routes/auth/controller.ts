@@ -63,7 +63,11 @@ export class Controller {
     const accessToken = generateAccessToken(user.id);
 
     res.cookie(envConfig.JWT_NAME, accessToken, cookieOptions);
-    res.status(201).json(new ApiResponse(201, 'User logged in successfully'));
+    res.status(201).json(
+      new ApiResponse(201, 'User logged in successfully', {
+        token: accessToken,
+      })
+    );
   };
 
   public getProfile = async (req: Request, res: Response): Promise<void> => {

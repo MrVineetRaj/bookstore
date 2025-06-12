@@ -7,7 +7,7 @@ export class ApiError extends Error {
   public readonly statusCode: number;
   public readonly message: string;
   public readonly details?: Record<string, any>;
-  public success: boolean = false;
+  public success: boolean;
 
   constructor(
     statusCode: number,
@@ -18,6 +18,7 @@ export class ApiError extends Error {
     this.statusCode = statusCode;
     this.message = message;
     this.details = details;
+    this.success = false;
   }
 }
 
@@ -43,8 +44,15 @@ export function expressControllerHandler(controller: ControllerFunction) {
   ): Promise<void> => {
     try {
       await controller(req, res);
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof ApiError) {
+        console.error('ApiError occurred in controller handler\n', {
+          error: {
+            statusCode: error.statusCode,
+            message: error.message,
+          },
+          // req: {
+        });
         res.status(error.statusCode).json({
           success: false,
           statusCode: error.statusCode,
@@ -58,17 +66,8 @@ export function expressControllerHandler(controller: ControllerFunction) {
           message: error.message,
         });
       } else {
-        logger.error('Unknown error occurred in controller handler', {
-          error: typeof error === 'object' ? error : { raw: error },
-          req: {
-            method: req.method,
-            url: req.url,
-            headers: req.headers,
-            body: req.body,
-            params: req.params,
-            query: req.query,
-          },
-        });
+        
+        // logger.error('Unknown error occurred in controller handler');
 
         next();
       }

@@ -1,81 +1,109 @@
-# BookBazaar – REST API for Online Bookstore
+# Bookstore API Documentation
 
-To build a backend API for an online bookstore that allows users to browse, purchase, and review books. The project simulates a lightweight e-commerce system with real-world backend design challenges.
+Welcome to the Bookstore API documentation. This API provides endpoints for managing a bookstore application with user authentication, store management, book inventory, shopping cart, reviews, and API key management.
 
-# 🎯 End Goal
+## Base URL
+```
+http://localhost:3000/api
+```
 
-- Working backend with full CRUD for books, reviews, orders
-- JWT-based user authentication
-- API key generation to access product and order routes
-- Middleware for authentication and key verification
-- Full Postman collection with testable endpoints and examples
-- Bonus: Razorpay payment integration
+## Authentication
 
-# 📊 Tables to be Created
+The API uses JWT tokens for authentication. Tokens are set as HTTP-only cookies upon successful login.
 
-- users
-- api_keys
-- books
-- reviews
-- orders
-- cart_items (bonus enhancement)
-- payments (bonus, for mock gateway)
+### User Roles
+- **BUYER**: Can purchase books, add reviews, manage cart
+- **SELLER**: Can create stores, manage books, generate API keys
 
-# 🧾 API Routes to Build
+### Authentication Types
+- **User Authentication**: Required for most endpoints
+- **Seller Authentication**: Required for seller-specific operations
+- **API Key Authentication**: Required for certain book management operations
 
-## 🔐 Auth & API Key
+## API Documentation by Feature
 
-- POST /auth/register → Register user
-- POST /auth/login → Login user
-- POST /auth/api-key → Generate new API key
-- GET /auth/me → Get user profile
+- [Authentication](./auth.md) - User registration, login, profile management
+- [Store Management](./store.md) - Create and manage bookstores
+- [Book Management](./books.md) - Add, update, and delete books
+- [Shopping Cart](./cart.md) - Add and remove books from cart
+- [Reviews](./reviews.md) - Add and manage book reviews
+- [API Key Management](./api-key.md) - Generate and manage API keys
 
-## 📚 Book Routes
+## Common Response Format
 
-- POST /books → Add a book (Admin only)
-- GET /books → List all books (public, supports filters)
-- GET /books/:id → Get book details
-- PUT /books/:id → Update book (Admin only)
-- DELETE /books/:id → Delete book (Admin only)
+All API responses follow this structure:
 
-## ✍️ Review Routes
+```json
+{
+  "statusCode": "number",
+  "message": "string",
+  "data": "object | array | null"
+}
+```
 
-- POST /books/:bookId/reviews → Add review to a book
-- GET /books/:bookId/reviews → List reviews for a book
-- DELETE /reviews/:id → Delete review (owner only)
+## Common Error Responses
 
-## 🛒 Order Routes
+### 400 Bad Request
+```json
+{
+  "statusCode": 400,
+  "message": "Bad Request",
+  "data": null
+}
+```
 
-- POST /orders → Place an order
-- GET /orders → List user’s orders
-- GET /orders/:id → Order details
+### 401 Unauthorized
+```json
+{
+  "statusCode": 401,
+  "message": "Unauthorized",
+  "data": null
+}
+```
 
-## 💳 Payment Mock API (Bonus)
+### 403 Forbidden
+```json
+{
+  "statusCode": 403,
+  "message": "Forbidden",
+  "data": null
+}
+```
 
-- POST /payments/create → Create a fake Razorpay payment ID
-- POST /payments/verify → Verify mock payment
+### 404 Not Found
+```json
+{
+  "statusCode": 404,
+  "message": "Not Found",
+  "data": null
+}
+```
 
-# 🛡️ Security
+### 409 Conflict
+```json
+{
+  "statusCode": 409,
+  "message": "Conflict",
+  "data": null
+}
+```
 
-- JWT Auth required for reviews and orders
-- Admin check middleware for book creation/deletion
-- API Key middleware for accessing /books, /orders, /payments
+## Headers
 
-# 🧠 Enhancements (Bonus)
+### Required Headers for API Key Authentication
+```
+X-API-Key: your_public_key
+X-API-Secret: your_private_key
+```
 
-- Razorpay integration (mock/real) with callback simulation
-- Add search, sort, and filters to book list (e.g., by author, genre)
-- Cart system using cart_items table
-- Pagination for listing endpoints
-- Email confirmation on order (mocked or real with Mailtrap)
+### Content Type
+```
+Content-Type: application/json
+```
 
-# ✅ Deliverables Checklist
+## Notes
 
-- Auth + API Key (JWT, key generation)
-- Book CRUD with Admin checks
-- Reviews & Orders functionality
-- Middleware (JWT, API Key, Admin)
-- DB structure & relationships
-- Code structure & quality
-- Postman collection
-- Bonus features (Razorpay, filters, cart, pagination, email)
+- All timestamps are in ISO 8601 format
+- Private API keys are only shown once during generation and rotation
+- Store owners can only manage their own stores and books
+- Users can only manage their own cart and reviews

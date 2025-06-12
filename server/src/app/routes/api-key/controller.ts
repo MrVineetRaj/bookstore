@@ -1,10 +1,27 @@
 import crypto from 'crypto';
 import type { Request, Response } from 'express';
-import { ApiResponse } from '../../lib/express-api.helpers';
+import { ApiError, ApiResponse } from '../../lib/express-api.helpers';
 import { prisma } from '../../lib/db';
 
 export class Controller {
   public generateKey = async (req: Request, res: Response): Promise<void> => {
+    const storeId = req.params.storeId;
+    if (!storeId) {
+      throw new ApiError(400, 'Store ID is required');
+    }
+
+    const store = await prisma.store.findUnique({
+      where: {
+        id: storeId,
+        owner_id: req.user?.id || '',
+      },
+    });
+
+    if (!store) {
+      throw new ApiError(404, 'Store not found');
+    }
+
+    const description = req.body.description;
     const randomString = crypto.randomBytes(6).toString('hex');
     const pub_key = 'bks_' + randomString;
     const randomStingForPrivKey = crypto.randomBytes(24).toString('hex');
@@ -19,8 +36,11 @@ export class Controller {
         seller_id: req.user?.id || '',
         pub_key,
         priv_key: priv_key_hash,
+        store_id: storeId,
+        description: description ?? '',
       },
     });
+
     res.status(201).json(
       new ApiResponse(201, 'Api key generated successfully', {
         pub_key: pub_key,
@@ -49,6 +69,7 @@ export class Controller {
         pub_key,
       },
     });
+
     if (!existingKey) {
       res.status(404).json(
         new ApiResponse(404, 'Api key not found', {
@@ -123,6 +144,14 @@ export class Controller {
         pub_key: true,
         created_at: true,
         updated_at: true,
+        description: true,
+        store_id: true,
+        store: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

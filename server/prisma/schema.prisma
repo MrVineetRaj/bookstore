@@ -20,6 +20,20 @@ enum UserRole {
   CUSTOMER
 }
 
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User{
   id String @id @default(uuid())
   name String
@@ -78,7 +92,7 @@ model ApiKey {
   @@index([seller_id])
   @@index([pub_key])
   @@index([store_id]) // Optional index for store-specific API keys
-  @@unique([pub_key, seller_id]) // Ensure unique API keys per seller
+  @@unique([pub_key, seller_id, store_id]) // Ensure unique API keys per seller
 }
 
 model Store {
@@ -96,6 +110,7 @@ model Store {
   books Book[]
   owner User @relation(fields: [owner_id], references: [id])
   apiKeys ApiKey[]
+  reviews Review[]
 
   // Indexes
   @@index([owner_id])
@@ -107,7 +122,7 @@ model Store {
 model Book {
   id String @id @default(uuid())
   store_id String
-  title String
+  title String   
   description String?
   author String
   price Float
@@ -116,15 +131,18 @@ model Book {
   store Store @relation(fields: [store_id], references: [id])
   reviews Review[]
   cartItems CartItem[]
+
+  @@unique([title,author]) 
 }
 
 model Review{
   id String @id @default(uuid())
   book_id String
   user_id String
+  store_id String
   rating Int
   comment String?
-
+  
   // Timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -132,6 +150,7 @@ model Review{
   // Relations
   book Book @relation(fields: [book_id], references: [id])
   user User @relation(fields: [user_id], references: [id])
+  store Store @relation(fields: [store_id], references: [id])
 
   // Indexes
   @@index([book_id])
@@ -139,14 +158,14 @@ model Review{
   @@index([rating])
   @@index([created_at])
   @@index([updated_at])
-  @@unique([book_id, user_id]) // Prevent duplicate reviews by the same user for the same book
+  @@unique([book_id, user_id,store_id]) // Prevent duplicate reviews by the same user for the same book
 }
 
 model CartItem{
   id String @id @default(uuid())
   user_id String
   book_id String
-  quantity Int @default(1)
+  store_id String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   // Relations
@@ -165,7 +184,7 @@ model Order{
   id String @id @default(uuid())
   user_id String
   payment_id String @unique
-  status String @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  status OrderStatus @default(PENDING) // PENDING, COMPLETED, CANCELLED
   quantity Int @default(1)
   price_per_copy Float
   total_amount Float
@@ -195,7 +214,7 @@ model Payment{
   order_id String @unique
   user_id String
   amount Float
-  status String @default("PENDING") // PENDING, COMPLETED, FAILED
+  status PaymentStatus @default(PENDING) // PENDING, COMPLETED, FAILED
   payment_method String // e.g., "CREDIT_CARD", "PAYPAL", etc.
   transaction_id String? @unique // Unique transaction ID from the payment gateway
   payment_gateway String // e.g., "STRIPE", "PAYPAL", etc.

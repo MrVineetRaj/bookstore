@@ -24,12 +24,21 @@ export const comparePassword = async (
 };
 
 export const extractToken = (req: Request) => {
+  
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7); // Remove 'Bearer ' prefix
+  }
+
   const token = req.cookies[envConfig.JWT_NAME];
 
   return token;
 };
 
 export const decodeToken = (token: string) => {
-  const decoded: jwt.JwtPayload = jwt.verify(token, envConfig.JWT_SECRET) as jwt.JwtPayload;
+  const decoded: jwt.JwtPayload = jwt.verify(
+    token,
+    envConfig.JWT_SECRET
+  ) as jwt.JwtPayload;
   return decoded;
 };

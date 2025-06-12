@@ -6,3 +6,20 @@ export const cookieOptions: CookieOptions = {
   sameSite: 'none',
   secure: process.env.NODE_ENV !== 'development',
 };
+export const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(';').map((url) => url.trim())
+  : ['http://localhost:5173'];
+export const CorsOptions = {
+  origin: corsOrigins,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'X-CSRF-Token',
+  ],
+};

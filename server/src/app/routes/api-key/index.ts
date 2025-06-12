@@ -14,19 +14,19 @@ export function register(): Router {
   const controller = new Controller();
 
   router.post(
-    '/generate',
+    '/:storeId/generate',
     sellerAuthMiddleware,
     expressControllerHandler(controller.generateKey.bind(controller))
   );
 
   router.post(
-    '/rotate/:apiKeyId',
+    '/:storeId/rotate/:apiKeyId',
     sellerAuthMiddleware,
     expressControllerHandler(controller.rotateKey.bind(controller))
   );
 
   router.delete(
-    '/delete/:apiKeyId',
+    '/:storeId/delete/:apiKeyId',
     sellerAuthMiddleware,
     expressControllerHandler(controller.deleteKey.bind(controller))
   );

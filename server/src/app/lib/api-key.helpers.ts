@@ -7,15 +7,13 @@ export const extractApiKey = (
   pubKey: string;
   privateKey: string;
 } | null => {
-  const pubKey =
-    req.headers['x-api-key-pub'] || req.query.apiKey || req.body.apiKey;
-  const privateKey =
-    req.headers['x-api-key-priv'] || req.query.apiKey || req.body.apiKey;
+  const pubKey = req.headers['x-pub-key'];
+  const privateKey = req.headers['x-api-key'];
 
   if (pubKey && privateKey) {
     return {
-      pubKey,
-      privateKey,
+      pubKey: pubKey as string,
+      privateKey: privateKey as string,
     };
   }
   return null;

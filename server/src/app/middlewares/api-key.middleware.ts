@@ -13,47 +13,34 @@ export async function apiKeyMiddleware(
 ): Promise<void> {
   const keys = extractApiKey(req);
   if (!keys) {
-    res.status(401).json(
-      new ApiError(401, 'Api key is invalid', {
-        details: 'API key is missing or invalid',
-      })
-    );
-    return;
+    throw new ApiError(401, 'Api key is invalid');
   }
 
-  try {
-    const apiKey = await prisma.apiKey.findUnique({
-      where: {
-        seller_id: req.user.id,
-        pub_key: keys.pubKey,
-      },
-    });
+  const storeId = req.params.storeId;
+  console.log('keys', storeId);
+  const apiKey = await prisma.apiKey.findUnique({
+    where: {
+      seller_id: req.user.id,
+      pub_key: keys.pubKey,
+      store_id: storeId,
+    },
+  });
 
-    if (!apiKey) {
-      res.status(401).json(
-        new ApiError(401, 'Api key is invalid', {
-          details: 'API key not found or does not belong to the user',
-        })
-      );
-      return;
-    }
+  console.log('apiKey', apiKey);
 
-    const isValid = isValidApiKey(
-      keys?.pubKey,
-      keys?.privateKey,
-      apiKey?.priv_key || ''
-    );
-    if (!isValid) {
-      res.status(401).json(new ApiError(401, 'Api key is invalid'));
-    }
-
-    next();
-  } catch (error) {
-    logger.error('Error in userAuthMiddleware:', error);
-    res.status(500).json(
-      new ApiError(500, 'Internal Server Error', {
-        details: error instanceof Error ? error.message : 'Unknown error',
-      })
-    );
+  if (!apiKey) {
+    throw new ApiError(401, 'Api key is invalid');
   }
+
+  const isValid = isValidApiKey(
+    keys?.pubKey,
+    keys?.privateKey,
+    apiKey?.priv_key || ''
+  );
+
+  if (!isValid) {
+    throw new ApiError(401, 'Api key is invalid');
+  }
+
+  next();
 }
