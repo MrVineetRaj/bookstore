@@ -8,6 +8,7 @@ import { register as registerBookRoutes } from './routes/books';
 import { register as registerStoreRoutes } from './routes/store';
 import { register as registerCartRoutes } from './routes/cart';
 import { register as registerReviewRoutes } from './routes/reviews';
+import { register as registerAdminRoutes } from './routes/admin';
 import cookieParser from 'cookie-parser';
 import { CorsOptions } from './lib/constants';
 import { ApiError } from './lib/express-api.helpers';
@@ -37,6 +38,7 @@ export function createApp(): Application {
   app.use('/api/v1/book', registerBookRoutes());
   app.use('/api/v1/cart', registerCartRoutes());
   app.use('/api/v1/review', registerReviewRoutes());
+  app.use('/api/v1/admin', registerAdminRoutes());
 
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // console.error('Server error:', err);

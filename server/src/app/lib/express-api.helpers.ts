@@ -45,6 +45,7 @@ export function expressControllerHandler(controller: ControllerFunction) {
     try {
       await controller(req, res);
     } catch (error) {
+      console.log(error);
       if (error instanceof ApiError) {
         console.error('ApiError occurred in controller handler\n', {
           error: {
@@ -66,7 +67,6 @@ export function expressControllerHandler(controller: ControllerFunction) {
           message: error.message,
         });
       } else {
-        
         // logger.error('Unknown error occurred in controller handler');
 
         next();

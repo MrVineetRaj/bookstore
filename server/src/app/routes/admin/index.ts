@@ -2,7 +2,7 @@ import express from 'express';
 import type { Router } from 'express';
 import { Controller } from './controller';
 import { expressControllerHandler } from '../../lib/express-api.helpers';
-import { sellerAuthMiddleware } from '../../middlewares/auth.middleware';
+import { adminAuthMiddleware, sellerAuthMiddleware } from '../../middlewares/auth.middleware';
 
 export function register(): Router {
   const router: Router = express.Router();
@@ -10,7 +10,7 @@ export function register(): Router {
 
   router.post(
     '/seed',
-    sellerAuthMiddleware,
+    adminAuthMiddleware,
     expressControllerHandler(controller.seedData.bind(controller))
   );
 

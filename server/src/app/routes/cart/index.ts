@@ -10,7 +10,7 @@ export function register(): Router {
   const controller = new Controller();
 
   router.post(
-    '/add',
+    '/:storeId/add',
     sellerAuthMiddleware,
     expressControllerHandler(controller.addToCart.bind(controller))
   );

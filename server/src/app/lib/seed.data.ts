@@ -220,26 +220,28 @@ type Review = {
 const generateRandomReviews = (
   count: number,
   store_with_books: {
-    store_id: string;
-    book_ids: string[];
-  }[],
+    [key: string]: string[]; // store_id: book_ids[]
+  },
   user_ids: string[]
 ) => {
   const reviews: Review[] = [];
   for (let i = 0; i < count; i++) {
     const randomUserId = user_ids[Math.floor(Math.random() * user_ids.length)];
     const randomStore =
-      store_with_books[Math.floor(Math.random() * store_with_books.length)];
-    const randomBookId =
-      randomStore.book_ids[
-        Math.floor(Math.random() * randomStore.book_ids.length)
+      Object.keys(store_with_books)[
+        Math.floor(Math.random() * Object.keys(store_with_books).length)
       ];
+    const randomBookId =
+      store_with_books[randomStore][
+        Math.floor(Math.random() * store_with_books[randomStore].length)
+      ];
+
     const randomRating = ratings[Math.floor(Math.random() * ratings.length)];
     const randomComment = comments[Math.floor(Math.random() * comments.length)];
     reviews.push({
       book_id: randomBookId,
       user_id: randomUserId,
-      store_id: randomStore.store_id,
+      store_id: randomStore,
       rating: randomRating,
       comment: randomComment,
     });
@@ -251,28 +253,28 @@ const generateCartItems = (
   count: number,
   user_ids: string[],
   store_with_books: {
-    store_id: string;
-    book_ids: string[];
-  }[]
+    [key: string]: string[]; // store_id: book_ids[]
+  }
 ) => {
   const cartItems: CartItem[] = [];
   for (let i = 0; i < count; i++) {
     const randomUserId = user_ids[Math.floor(Math.random() * user_ids.length)];
     const randomStore =
-      store_with_books[Math.floor(Math.random() * store_with_books.length)];
+      Object.keys(store_with_books)[
+        Math.floor(Math.random() * Object.keys(store_with_books).length)
+      ];
     const randomBookId =
-      randomStore.book_ids[
-        Math.floor(Math.random() * randomStore.book_ids.length)
+      store_with_books[randomStore][
+        Math.floor(Math.random() * store_with_books[randomStore].length)
       ];
     cartItems.push({
       user_id: randomUserId,
       book_id: randomBookId,
-      store_id: randomStore.store_id,
+      store_id: randomStore,
     });
   }
   return cartItems;
 };
-
 
 export {
   generateRandomCustomers,
@@ -281,4 +283,4 @@ export {
   generateRandomBooks,
   generateRandomReviews,
   generateCartItems,
-}
+};
